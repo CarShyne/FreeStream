@@ -1,0 +1,59 @@
+import express from 'express';
+import fs from 'fs';
+import path from 'path';
+import fetch from 'node-fetch';
+
+const app = express();
+const PORT = 3000;
+
+// Path to your media folder
+const MEDIA_FOLDER = path.resolve('../media');
+
+// Your TMDB API Key
+const TMDB_KEY = 'YOUR_TMDB_KEY';
+
+app.use(express.static('../client'));
+
+// Scan media folder and return list of movies
+app.get('/api/movies', async (req, res) => {
+    const files = fs.readdirSync(MEDIA_FOLDER).filter(f => f.endsWith('.mp4') || f.endsWith('.mkv'));
+
+    const movies = await Promise.all(files.map(async file => {
+        const title = file.replace(/\.(mp4|mkv)/i, '');
+        const meta = await fetchTMDB(title);
+        return {
+            title,
+            filePath: `/media/${file}`,
+            poster: meta?.poster,
+            overview: meta?.overview
+        };
+    }));
+
+    res.json(movies);
+});
+
+// Serve media files
+app.use('/media', express.static(MEDIA_FOLDER));
+
+async function fetchTMDB(title) {
+    try {
+        const query = encodeURIComponent(title);
+        const url = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${query}`;
+        const resp = await fetch(url);
+        const data = await resp.json();
+        if (data.results?.length > 0) {
+            const movie = data.results[0];
+            return {
+                poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
+                overview: movie.overview
+            };
+        }
+    } catch (e) {
+        console.error(e);
+    }
+    return null;
+}
+
+app.listen(PORT, () => {
+    console.log(`FreeStream server running on http://localhost:${PORT}`);
+});
