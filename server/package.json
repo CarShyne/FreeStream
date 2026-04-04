@@ -2,12 +2,12 @@
   "name": "freestream",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "node-fetch": "^3.3.2"
-  },
-  "type": "module"
+    "upnp-mediarenderer-client": "^1.1.1"
+  }
 }
