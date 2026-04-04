@@ -1,18 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>FreeStream</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body { background: #111; color: white; font-family: sans-serif; }
+        .grid { display: flex; flex-wrap: wrap; gap: 10px; padding: 20px; }
+        .item {
+            width: 200px;
+            padding: 20px;
+            background: #222;
+            cursor: pointer;
+            text-align: center;
+        }
+        .item:hover { background: #444; }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>FreeStream</h1>
-    </header>
-    <main>
-        <div id="grid" class="grid"></div>
-    </main>
 
-    <script src="app.js"></script>
+<h1 style="text-align:center;">FreeStream</h1>
+
+<div class="grid" id="grid"></div>
+
+<script>
+async function load() {
+    const res = await fetch('/movies');
+    const movies = await res.json();
+
+    const grid = document.getElementById('grid');
+
+    movies.forEach(file => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerText = file;
+
+        div.onclick = () => {
+            fetch(`/play?file=${encodeURIComponent(file)}`);
+        };
+
+        grid.appendChild(div);
+    });
+}
+
+load();
+</script>
+
 </body>
 </html>
