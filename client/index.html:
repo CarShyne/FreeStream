@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FreeStream</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>FreeStream</h1>
+    </header>
+    <main>
+        <div id="grid" class="grid"></div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
