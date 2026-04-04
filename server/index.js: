@@ -7,9 +7,10 @@ import Renderer from 'upnp-mediarenderer-client';
 
 const app = express();
 const PORT = 3000;
+app.use(express.static('../client'));
 
 // 👇 CHANGE THIS TO YOUR MEDIA FOLDER
-const MEDIA_FOLDER = "/Volumes/Media/Movies";
+const MEDIA_FOLDER = "smb://192.168.0.211/2TB/Movies.2TB"; 
 
 let devices = [];
 
