@@ -177,10 +177,20 @@ app.get('/start-stream', (req, res) => {
 
     const isMkv = target.toLowerCase().endsWith('.mkv');
 
+    // Detect input codec
+    let inputCodec = 'hevc';
+    try {
+        inputCodec = execSync(`ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1 "${fullPath}"`).toString().trim().replace('codec_name=','');
+    } catch(e) {}
+    console.log('Input codec:', inputCodec, 'for', fullPath);
+
+    const videoArgs = inputCodec === 'h264'
+        ? ['-c:v', 'copy']
+        : ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23'];
+
     const ffmpeg = spawn('ffmpeg', [
         '-i', fullPath,
-        '-c:v', isMkv ? 'hevc_videotoolbox' : 'copy',
-        ...(isMkv ? ['-b:v', '4M', '-tag:v', 'hvc1'] : []),
+        ...videoArgs,
         '-c:a', 'aac',
         '-b:a', '192k',
         '-ac', '2',
@@ -189,10 +199,12 @@ app.get('/start-stream', (req, res) => {
         '-hls_flags', 'independent_segments',
         '-hls_segment_filename', path.join(outDir, 'seg%03d.ts'),
         path.join(outDir, 'index.m3u8')
-    ]);
+    ], { stdio: ['ignore', 'ignore', 'pipe'] });
 
     activeStreams[streamId] = ffmpeg;
-    ffmpeg.stderr.on('data', d => process.stdout.write('.'));
+    console.log('Starting FFmpeg for:', fullPath);
+    ffmpeg.stderr.on('data', d => console.error('[FFmpeg]', d.toString().slice(0, 100)));
+    ffmpeg.on('error', err => console.error('[FFmpeg spawn error]', err));
     ffmpeg.on('close', () => delete activeStreams[streamId]);
 
     const localIP = getLocalIP();
