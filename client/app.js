@@ -130,3 +130,68 @@ function sortMovies(method) {
     else if (method === 'added-desc') sorted.sort((a, b) => (b.added || 0) - (a.added || 0));
     renderGrid(sorted);
 }
+
+// Settings
+async function openSettings() {
+    const res = await fetch('/api/settings');
+    const settings = await res.json();
+
+    // Populate folders
+    const list = document.getElementById('media-folders-list');
+    list.innerHTML = '';
+    settings.mediaFolders.forEach(folder => addFolderRow(folder));
+
+    document.getElementById('tv-folder').value = settings.tvFolder || '';
+    document.getElementById('audio-lang').value = settings.preferredAudioLang || 'eng';
+    document.getElementById('tmdb-key').value = settings.tmdbApiKey || '';
+    document.getElementById('server-port').value = settings.port || 3000;
+
+    document.getElementById('settings-modal').style.display = 'flex';
+}
+
+function closeSettings() {
+    document.getElementById('settings-modal').style.display = 'none';
+}
+
+function addFolderRow(value = '') {
+    const list = document.getElementById('media-folders-list');
+    const row = document.createElement('div');
+    row.className = 'settings-folder-item';
+    row.innerHTML = `
+        <input class="settings-input" type="text" value="${value}" placeholder="/Volumes/drive/Movies">
+        <button class="settings-remove-btn" onclick="this.parentElement.remove()">×</button>
+    `;
+    list.appendChild(row);
+}
+
+async function addFolder() {
+    try {
+        const res = await fetch('/pick-folder');
+        const { path } = await res.json();
+        addFolderRow(path || '');
+    } catch(e) {
+        addFolderRow('');
+    }
+}
+
+async function saveSettings() {
+    const folders = [...document.querySelectorAll('#media-folders-list .settings-input')]
+        .map(i => i.value.trim()).filter(Boolean);
+
+    const settings = {
+        mediaFolders: folders,
+        tvFolder: document.getElementById('tv-folder').value.trim(),
+        preferredAudioLang: document.getElementById('audio-lang').value,
+        tmdbApiKey: document.getElementById('tmdb-key').value.trim(),
+        port: parseInt(document.getElementById('server-port').value) || 3000
+    };
+
+    await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+    });
+
+    closeSettings();
+    alert('Settings saved! Restart the server for folder changes to take effect.');
+}

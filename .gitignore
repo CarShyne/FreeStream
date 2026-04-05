@@ -1,0 +1,11 @@
+# Personal config
+server/settings.json
+.cloudflared/
+nohup.out
+node_modules/
+/node_modules/
+server/node_modules/
+*.log
+
+# HLS temp files
+/tmp/freestream-hls/

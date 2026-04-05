@@ -2,7 +2,7 @@ import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { exec, spawn } from 'child_process';
+import { exec, spawn, execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import fetch from 'node-fetch';
 
@@ -109,12 +109,21 @@ async function getMetadata(filename) {
 
 app.get('/movies', async (req, res) => {
     try {
-        const files = fs.readdirSync(MEDIA_FOLDER)
-            .filter(f => (f.endsWith('.mp4') || f.endsWith('.mkv')) && !f.startsWith('._'));
-        const movies = await Promise.all(files.map(async f => {
+        const settings = loadSettings();
+        const folders = settings.mediaFolders || [MEDIA_FOLDER];
+        const allFiles = [];
+        for (const folder of folders) {
+            try {
+                const files = fs.readdirSync(folder)
+                    .filter(f => (f.endsWith('.mp4') || f.endsWith('.mkv')) && !f.startsWith('._'));
+                files.forEach(f => allFiles.push({ file: f, folder }));
+            } catch(e) { console.error('Cannot read folder:', folder); }
+        }
+        const movies = await Promise.all(allFiles.map(async ({ file: f, folder }) => {
             const meta = await getMetadata(f);
-            const stat = fs.statSync(path.join(MEDIA_FOLDER, f));
+            const stat = fs.statSync(path.join(folder, f));
             meta.added = stat.mtimeMs;
+            meta.folder = folder;
             return meta;
         }));
         res.json(movies);
@@ -126,7 +135,14 @@ app.get('/movies', async (req, res) => {
 // Open in VLC locally
 app.get('/open', (req, res) => {
     const file = req.query.file;
-    const fullPath = path.join(MEDIA_FOLDER, file);
+    const settings = loadSettings();
+    const folders = settings.mediaFolders || [MEDIA_FOLDER];
+    let fullPath = null;
+    for (const folder of folders) {
+        const p = path.join(folder, file);
+        if (fs.existsSync(p)) { fullPath = p; break; }
+    }
+    if (!fullPath) return res.status(404).send('File not found');
     exec(`open -a VLC "${fullPath}"`);
     res.send('ok');
 });
@@ -188,8 +204,26 @@ app.get('/start-stream', (req, res) => {
         ? ['-c:v', 'copy']
         : ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23'];
 
+    const settings = loadSettings();
+    const audioLang = settings.preferredAudioLang || 'eng';
+
+    // Find preferred audio stream index
+    let audioMap = ['-map', '0:a:0']; // default first audio
+    try {
+        const probeResult = execSync(`ffprobe -v error -select_streams a -show_entries stream=index:stream_tags=language -of json "${fullPath}"`).toString();
+        const streams = JSON.parse(probeResult).streams;
+        const preferred = streams.find(s => s.tags?.language === audioLang);
+        if (preferred) {
+            const idx = streams.indexOf(preferred);
+            audioMap = ['-map', `0:a:${idx}`];
+            console.log(`Using audio track ${idx} (${audioLang})`);
+        }
+    } catch(e) {}
+
     const ffmpeg = spawn('ffmpeg', [
         '-i', fullPath,
+        '-map', '0:v:0',
+        ...audioMap,
         ...videoArgs,
         '-c:a', 'aac',
         '-b:a', '192k',
@@ -311,4 +345,27 @@ app.use('/tv-media', express.static(TV_FOLDER));
 app.get('/clear-cache', (req, res) => {
     Object.keys(metadataCache).forEach(k => delete metadataCache[k]);
     res.send('Cache cleared');
+});
+
+// Settings
+import { loadSettings, saveSettings } from './settings.js';
+
+app.get('/api/settings', (req, res) => {
+    res.json(loadSettings());
+});
+
+app.post('/api/settings', express.json(), (req, res) => {
+    saveSettings(req.body);
+    res.json({ ok: true });
+});
+
+// Native folder picker via AppleScript
+app.get('/pick-folder', async (req, res) => {
+    try {
+        const { execSync } = await import('child_process');
+        const result = execSync(`osascript -e 'POSIX path of (choose folder with prompt "Select Media Folder")'`).toString().trim();
+        res.json({ path: result });
+    } catch(e) {
+        res.json({ path: null });
+    }
 });

@@ -358,7 +358,111 @@
         background: rgba(255,255,255,0.15);
         color: #fff;
     }
-</style>
+
+        .gear-btn { background:none; border:none; color:#00d4ff; cursor:pointer; padding:6px; border-radius:8px; display:flex; align-items:center; transition:background 0.15s; flex-shrink:0; }
+        .gear-btn:hover { background:rgba(0,212,255,0.08); }
+        #settings-modal { position:fixed; inset:0; z-index:300; display:flex; align-items:center; justify-content:center; }
+        .settings-overlay { position:absolute; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(8px); }
+        .settings-card { position:relative; background:#111118; border:1px solid rgba(0,212,255,0.15); border-radius:20px; width:480px; max-width:95vw; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 0 60px rgba(0,212,255,0.08),0 24px 80px rgba(0,0,0,0.8); overflow:hidden; animation:settingsIn 0.2s ease; }
+        @keyframes settingsIn { from{transform:scale(0.95) translateY(10px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+        .settings-header { padding:20px 24px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.06); }
+        .settings-header h2 { font-size:18px; font-weight:600; color:#fff; }
+        .settings-close { background:rgba(255,255,255,0.08); border:none; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; color:#888; cursor:pointer; }
+        .settings-close:hover { background:rgba(255,255,255,0.15); color:#fff; }
+        .settings-body { padding:8px 0; overflow-y:auto; flex:1; }
+        .settings-section { padding:14px 24px; }
+        .settings-section-title { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.8px; color:#00d4ff; margin-bottom:10px; }
+        .settings-row { display:flex; align-items:center; gap:10px; }
+        .settings-input { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:#e0e0e0; font-family:'Advent Pro',sans-serif; font-size:13px; padding:8px 12px; flex:1; outline:none; }
+        .settings-input:focus { border-color:rgba(0,212,255,0.4); }
+        .settings-select { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:#e0e0e0; font-family:'Advent Pro',sans-serif; font-size:13px; padding:8px 12px; outline:none; cursor:pointer; }
+        .settings-hint { font-size:12px; color:#555; }
+        .settings-folder-item { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+        .settings-remove-btn { background:rgba(255,60,60,0.1); border:1px solid rgba(255,60,60,0.2); border-radius:6px; color:#ff4444; font-size:18px; width:28px; height:28px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .settings-add-btn { background:none; border:1px dashed rgba(0,212,255,0.3); border-radius:8px; color:#00d4ff; font-family:'Advent Pro',sans-serif; font-size:13px; padding:7px 14px; cursor:pointer; margin-top:6px; }
+        .settings-divider { height:1px; background:rgba(255,255,255,0.05); margin:0 24px; }
+        .settings-footer { padding:16px 24px; border-top:1px solid rgba(255,255,255,0.06); display:flex; justify-content:flex-end; }
+        .settings-save-btn { background:#00d4ff; color:#000; border:none; border-radius:10px; padding:10px 24px; font-family:'Advent Pro',sans-serif; font-size:14px; font-weight:600; cursor:pointer; box-shadow:0 0 16px rgba(0,212,255,0.3); }
+        .settings-save-btn:hover { background:#33ddff; }
+
+        /* iPhone optimisation */
+        @media (max-width: 430px) {
+            body { overflow-x: hidden; }
+            header {
+                padding: 0 16px;
+                padding-top: env(safe-area-inset-top);
+                height: auto;
+                min-height: 56px;
+                flex-wrap: wrap;
+                gap: 8px;
+                padding-bottom: 8px;
+            }
+            .logo { font-size: 18px; }
+            .main-nav { margin-left: 0; gap: 4px; }
+            .nav-btn { font-size: 13px; padding: 5px 10px; }
+            .sort-wrap { display: none; }
+            .search-wrap { margin-left: auto; }
+            .search-wrap input { width: 130px; font-size: 13px; }
+            .search-wrap input:focus { width: 150px; }
+            .gear-btn { padding: 4px; }
+            .grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+                padding: 12px;
+                box-sizing: border-box;
+                width: 100%;
+                overflow-x: hidden;
+                padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            }
+            .card { width: 100%; }
+            .card-poster {
+                width: 100%;
+                height: 0;
+                padding-bottom: 150%;
+                position: relative;
+                border-radius: 10px;
+            }
+            .card-poster img {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 10px;
+            }
+            .card-poster .no-poster { position: absolute; inset: 0; }
+            .card-poster .card-hover { position: absolute; inset: 0; }
+            .card-title { font-size: 12px; }
+            .card-year { font-size: 11px; }
+            .modal-box {
+                flex-direction: column;
+                width: 100%;
+                max-width: 100vw;
+                max-height: 90vh;
+                border-radius: 20px 20px 0 0;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+            }
+            .modal-box img {
+                width: 100%;
+                height: 200px;
+                object-fit: cover;
+            }
+            .modal-info { padding: 16px; }
+            .modal-info h2 { font-size: 20px; }
+            #settings-modal { align-items: flex-end; }
+            .settings-card {
+                width: 100%;
+                max-width: 100vw;
+                border-radius: 20px 20px 0 0;
+                max-height: 80vh;
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+    </style>
 ```
 
 </head>
@@ -387,7 +491,86 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" id="search" placeholder="Search your library...">
     </div>
+    <button class="gear-btn" onclick="openSettings()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
 </header>
+
+<!-- Settings Modal -->
+<div id="settings-modal" style="display:none">
+    <div class="settings-overlay" onclick="closeSettings()"></div>
+    <div class="settings-card">
+        <div class="settings-header">
+            <h2>Settings</h2>
+            <button class="settings-close" onclick="closeSettings()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <div class="settings-body">
+            <!-- Media Folders -->
+            <div class="settings-section">
+                <div class="settings-section-title">Media Folders</div>
+                <div id="media-folders-list"></div>
+                <button class="settings-add-btn" onclick="addFolder()">+ Add Folder</button>
+            </div>
+
+            <div class="settings-divider"></div>
+
+            <!-- TV Folder -->
+            <div class="settings-section">
+                <div class="settings-section-title">TV Shows Folder</div>
+                <div class="settings-row">
+                    <input class="settings-input" id="tv-folder" type="text" placeholder="/path/to/tv shows">
+                </div>
+            </div>
+
+            <div class="settings-divider"></div>
+
+            <!-- Audio Language -->
+            <div class="settings-section">
+                <div class="settings-section-title">Preferred Audio Language</div>
+                <div class="settings-row">
+                    <select class="settings-select" id="audio-lang">
+                        <option value="eng">English</option>
+                        <option value="spa">Spanish</option>
+                        <option value="fra">French</option>
+                        <option value="deu">German</option>
+                        <option value="ita">Italian</option>
+                        <option value="jpn">Japanese</option>
+                        <option value="kor">Korean</option>
+                    </select>
+                    <span class="settings-hint">Auto-select audio track by language</span>
+                </div>
+            </div>
+
+            <div class="settings-divider"></div>
+
+            <!-- TMDB Key -->
+            <div class="settings-section">
+                <div class="settings-section-title">TMDB API Key</div>
+                <div class="settings-row">
+                    <input class="settings-input" id="tmdb-key" type="password" placeholder="Your TMDB API key">
+                </div>
+            </div>
+
+            <div class="settings-divider"></div>
+
+            <!-- Port -->
+            <div class="settings-section">
+                <div class="settings-section-title">Server Port</div>
+                <div class="settings-row">
+                    <input class="settings-input" id="server-port" type="number" placeholder="3000" style="width:100px">
+                    <span class="settings-hint">Requires restart</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-footer">
+            <button class="settings-save-btn" onclick="saveSettings()">Save Settings</button>
+        </div>
+    </div>
+</div>
 
 <div class="grid" id="grid"></div>
 
