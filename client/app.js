@@ -4,7 +4,8 @@ let currentMovie = null;
 async function loadMovies() {
     const res = await fetch('/movies');
     allMovies = await res.json();
-    renderGrid(allMovies);
+    currentMovies = allMovies.filter(m => !m.filename?.toLowerCase().includes('tv shows'));
+    renderGrid(currentMovies);
 }
 
 function renderGrid(movies) {
@@ -96,4 +97,36 @@ async function setSection(section, btn) {
     } else {
         renderGrid(allMovies.filter(m => !m.filename?.toLowerCase().includes('tv shows') && !m.filename?.toLowerCase().includes('tvshows')));
     }
+}
+
+function toggleSort(e) {
+    e.stopPropagation();
+    document.getElementById('sort-dropdown').classList.toggle('open');
+}
+
+function selectSort(method, label) {
+    document.getElementById('sort-label').textContent = label;
+    document.getElementById('sort-dropdown').classList.remove('open');
+    document.querySelectorAll('.sort-option').forEach(o => o.classList.remove('active'));
+    event.target.classList.add('active');
+    sortMovies(method);
+}
+
+document.addEventListener('click', () => {
+    document.getElementById('sort-dropdown')?.classList.remove('open');
+});
+
+function sortMovies(method) {
+    console.log('sortMovies called:', method, 'currentMovies:', currentMovies.length);
+    if (!currentMovies.length) {
+        currentMovies = allMovies.filter(m => !m.filename?.toLowerCase().includes('tv shows'));
+    }
+    let sorted = [...currentMovies];
+    if (method === 'year-desc') sorted.sort((a, b) => (b.year || 0) - (a.year || 0));
+    else if (method === 'year-asc') sorted.sort((a, b) => (a.year || 0) - (b.year || 0));
+    else if (method === 'title-asc') sorted.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    else if (method === 'title-desc') sorted.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
+    else if (method === 'rating-desc') sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    else if (method === 'added-desc') sorted.sort((a, b) => (b.added || 0) - (a.added || 0));
+    renderGrid(sorted);
 }

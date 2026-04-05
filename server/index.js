@@ -33,20 +33,72 @@ function getLocalIP() {
     }
 }
 
+// Manual overrides for filenames that can't be parsed automatically
+const MANUAL_OVERRIDES = {
+    'Se7en(1995)1080p.BrRip.x264.YIFY.mp4': { title: 'Se7en', year: '1995' },
+    'War.Of.The.Worlds.Revival.2025.1080p.WEBRip.x264.AAC5.1-[YTS.MX].mp4': { title: 'War of the Worlds Revival', year: '2025' },
+    'Revo005.mkv': { title: 'Revo', year: null },
+};
+
+async function searchTMDB(title, year) {
+    const queries = year
+        ? [
+            `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}&year=${year}`,
+            `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}&year=${parseInt(year)+1}`,
+            `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}`
+          ]
+        : [`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}`];
+    for (const url of queries) {
+        const data = await fetch(url).then(r => r.json());
+        if (data.results?.[0]) return data.results[0];
+    }
+    return null;
+}
+
+function parseFilename(filename) {
+    let base = filename.replace(/\.(mkv|mp4|avi|mov)$/i, '');
+    let year = null;
+
+    // Match (1995) or [1995] with or without space before
+    let m = base.match(/\s*[\[(]((?:19|20)\d{2})[\])]/);
+    if (m) { year = m[1]; base = base.replace(m[0], '').trim(); }
+
+    if (!year) {
+        // Space before year: Title 2025 ...
+        m = base.match(/^(.+?)\s((19|20)\d{2})(\s|$)/);
+        if (m) { year = m[2]; base = m[1]; }
+        else {
+            // Dot before year: Title.2025....
+            m = base.match(/^(.+?)\.((?:19|20)\d{2})(?:\.|$)/);
+            if (m) { year = m[2]; base = m[1]; }
+        }
+    }
+
+    const junk = /\b(\d{3,4}p|4K|UHD|WEB[-.]?DL|WEBRip|BluRay|BrRip|HDRip|HEVC|x265|x264|H\.?264|H\.?265|AAC|DDP|AC3|DD|BONE|RARBG|YTS|NeoNoir|DUAL|UNRATED|Extended|AMZN|IMAX|NF|iNTERNAL|Multi|SupaCvnt|RMTeam|BYNDR|FHC|RGB|Line|eztv|MeGusta|HC|10Bit|Subs|KINGDOM|6CH|S0\d+E\d+|Eng|ESub|DV|UpScaled|HDR10|HDR|ita|eng|NUeng|Licdom|iTA|KOR|aWEBRip|Dr4gon|YIFY|YG|LT|AM|AG|MX)\b.*/i;
+
+    let title = base
+        .replace(/\./g, ' ')
+        .replace(junk, '')
+        .replace(/\s*-\s*$/, '')
+        .replace(/[-_]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    return { title, year };
+}
+
 async function getMetadata(filename) {
     if (metadataCache[filename]) return metadataCache[filename];
-    const match = filename.match(/^(.+?)[\.\(](\d{4})/);
-    if (!match) return { title: filename, year: null, poster: null, overview: null, rating: null, filename };
-    const title = match[1].replace(/\./g, ' ').trim();
-    const year = match[2];
+    const { title, year } = MANUAL_OVERRIDES[filename] || parseFilename(filename);
     try {
-        const url = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}&year=${year}`;
-        const data = await fetch(url).then(r => r.json());
-        const movie = data.results?.[0];
+        const movie = await searchTMDB(title, year);
         const result = movie ? {
-            title: movie.title, year,
-            poster: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
-            overview: movie.overview, rating: movie.vote_average, filename
+            title: movie.title,
+            year: year || movie.release_date?.split('-')[0],
+            poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
+            overview: movie.overview,
+            rating: movie.vote_average,
+            filename
         } : { title, year, poster: null, overview: null, rating: null, filename };
         metadataCache[filename] = result;
         return result;
@@ -59,7 +111,12 @@ app.get('/movies', async (req, res) => {
     try {
         const files = fs.readdirSync(MEDIA_FOLDER)
             .filter(f => (f.endsWith('.mp4') || f.endsWith('.mkv')) && !f.startsWith('._'));
-        const movies = await Promise.all(files.map(getMetadata));
+        const movies = await Promise.all(files.map(async f => {
+            const meta = await getMetadata(f);
+            const stat = fs.statSync(path.join(MEDIA_FOLDER, f));
+            meta.added = stat.mtimeMs;
+            return meta;
+        }));
         res.json(movies);
     } catch (err) {
         res.status(500).json({ error: 'Could not read media folder' });

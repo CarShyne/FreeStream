@@ -55,7 +55,67 @@
         font-weight: 300;
     }
 
-    .search-wrap {
+    .sort-wrap { position: relative; }
+        .sort-btn {
+            background: none;
+            border: none;
+            color: #00d4ff;
+            font-family: 'Advent Pro', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            transition: background 0.15s;
+            white-space: nowrap;
+        }
+        .sort-btn:hover { background: rgba(0,212,255,0.08); }
+        .sort-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            background: #1a1a24;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 200;
+            min-width: 140px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        }
+        .sort-dropdown.open { display: block; }
+        .sort-option {
+            padding: 11px 16px;
+            font-family: 'Advent Pro', sans-serif;
+            font-size: 14px;
+            color: #ccc;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .sort-option:hover { background: rgba(0,212,255,0.08); color: #fff; }
+        .sort-option.active { color: #00d4ff; }
+        .sort-wrap select {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            color: #aaa;
+            font-family: 'Advent Pro', sans-serif;
+            font-size: 14px;
+            padding: 8px 14px;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            padding-right: 28px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+        .sort-wrap select:focus { border-color: rgba(0,212,255,0.4); color: #fff; }
+        .search-wrap {
         margin-left: auto;
         position: relative;
     }
@@ -310,6 +370,19 @@
         <button class="nav-btn active" onclick="setSection('movies', this)">Movies</button>
         <button class="nav-btn" onclick="setSection('tvshows', this)">TV Shows</button>
     </nav>
+    <div class="sort-wrap" id="sort-wrap">
+        <button class="sort-btn" onclick="toggleSort(event)">
+            Sort by <span id="sort-label">Title</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="sort-dropdown" id="sort-dropdown">
+            <div class="sort-option active" onclick="selectSort('title-asc', 'Title')">Title</div>
+            <div class="sort-option" onclick="selectSort('year-desc', 'Year')">Year</div>
+            <div class="sort-option" onclick="selectSort('rating-desc', 'Rating')">Rating</div>
+            <div class="sort-option" onclick="selectSort('year-asc', 'Oldest')">Oldest</div>
+            <div class="sort-option" onclick="selectSort('added-desc', 'Last Added')">Last Added</div>
+        </div>
+    </div>
     <div class="search-wrap">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" id="search" placeholder="Search your library...">
