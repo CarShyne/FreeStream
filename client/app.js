@@ -64,7 +64,10 @@ async function openModal(movie) {
 
 function playEpisode(show, episode) {
     const file = encodeURIComponent(show + '/' + episode);
-    window.open('/player.html?tvfile=' + file, '_blank');
+    const url = '/player.html?tvfile=' + file;
+    const w = screen.availWidth;
+    const h = screen.availHeight;
+    window.open(url, '_blank', `left=0,top=0,width=${w},height=${h}`);
 }
 
 function closeModal() {
@@ -73,7 +76,10 @@ function closeModal() {
 
 function playMovie() {
     if (!currentMovie) return;
-    window.open('/player.html?file=' + encodeURIComponent(currentMovie.filename), '_blank');
+    const url = '/player.html?file=' + encodeURIComponent(currentMovie.filename);
+    const w = screen.availWidth;
+    const h = screen.availHeight;
+    window.open(url, '_blank', `left=0,top=0,width=${w},height=${h}`);
 }
 
 document.getElementById('search').addEventListener('input', e => {
