@@ -369,3 +369,21 @@ app.get('/pick-folder', async (req, res) => {
         res.json({ path: null });
     }
 });
+
+// Direct AirPlay to TV
+import { execSync } from 'child_process';
+
+app.get('/airplay', (req, res) => {
+    const file = req.query.file;
+    const fullPath = path.join(MEDIA_FOLDER, file);
+    const localIP = getLocalIP();
+    const mediaURL = `http://${localIP}:${PORT}/stream-mp4?file=${encodeURIComponent(file)}`;
+    
+    // Send directly to TV via AirPlay protocol
+    try {
+        execSync(`curl -s -X POST http://192.168.0.50/play -d 'Content-Location: ${mediaURL}\nStart-Position: 0\n'`);
+        res.json({ ok: true });
+    } catch(e) {
+        res.json({ ok: false, error: e.message });
+    }
+});
