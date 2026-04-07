@@ -362,7 +362,6 @@ app.post('/api/settings', express.json(), (req, res) => {
 // Native folder picker via AppleScript
 app.get('/pick-folder', async (req, res) => {
     try {
-        const { execSync } = await import('child_process');
         const result = execSync(`osascript -e 'POSIX path of (choose folder with prompt "Select Media Folder")'`).toString().trim();
         res.json({ path: result });
     } catch(e) {
@@ -371,7 +370,6 @@ app.get('/pick-folder', async (req, res) => {
 });
 
 // Direct AirPlay to TV
-import { execSync } from 'child_process';
 
 app.get('/airplay', (req, res) => {
     const file = req.query.file;
