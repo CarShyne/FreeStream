@@ -45,7 +45,7 @@ async function startStream() {
     let url;
     if (target.toLowerCase().endsWith('.mp4')) {
         url = tvfile ? 'http://192.168.0.121:3000/tv-media/' + tvfile
-                     : 'http://192.168.0.121:3000/stream-mp4?file=' + encodeURIComponent(file);
+                     : SERVER_BASE + '/stream-mp4?file=' + encodeURIComponent(file);
     } else {
         const res = await fetch(tvfile ? '/start-stream?tvfile=' + tvfile
                                        : '/start-stream?file=' + encodeURIComponent(file));

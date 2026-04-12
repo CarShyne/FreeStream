@@ -191,12 +191,13 @@ app.get('/start-stream', (req, res) => {
         delete activeStreams[streamId];
     }
 
-    const isMkv = target.toLowerCase().endsWith('.mkv');
+    // Route everything through HLS for consistent playback
+    const isMkv = !target.toLowerCase().endsWith('.mp4');
 
     // Detect input codec
     let inputCodec = 'hevc';
     try {
-        inputCodec = execSync(`ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1 "${fullPath}"`).toString().trim().replace('codec_name=','');
+        inputCodec = execSync(`/usr/local/bin/ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1 "${fullPath}"`).toString().trim().replace('codec_name=','');
     } catch(e) {}
     console.log('Input codec:', inputCodec, 'for', fullPath);
 
@@ -210,7 +211,7 @@ app.get('/start-stream', (req, res) => {
     // Find preferred audio stream index
     let audioMap = ['-map', '0:a:0']; // default first audio
     try {
-        const probeResult = execSync(`ffprobe -v error -select_streams a -show_entries stream=index:stream_tags=language -of json "${fullPath}"`).toString();
+        const probeResult = execSync(`/usr/local/bin/ffprobe -v error -select_streams a -show_entries stream=index:stream_tags=language -of json "${fullPath}"`).toString();
         const streams = JSON.parse(probeResult).streams;
         const preferred = streams.find(s => s.tags?.language === audioLang);
         if (preferred) {
@@ -220,7 +221,7 @@ app.get('/start-stream', (req, res) => {
         }
     } catch(e) {}
 
-    const ffmpeg = spawn('ffmpeg', [
+    const ffmpeg = spawn('/usr/local/bin/ffmpeg', [
         '-i', fullPath,
         '-map', '0:v:0',
         ...audioMap,
@@ -273,6 +274,14 @@ app.get('/stream-mp4', (req, res) => {
         });
         fs.createReadStream(fullPath).pipe(res);
     }
+});
+
+// Return current server config for client
+app.get('/config', (req, res) => {
+    res.json({ 
+        serverIP: getLocalIP(),
+        port: PORT
+    });
 });
 
 app.use('/media', express.static(MEDIA_FOLDER));
