@@ -5,5 +5,5 @@
 	5.	Watch movies
 
   I built this out of frustration with plex paywalls and lack of other decent media servers.
-  I wanted the flavour of popcorntime and the workings of plex under the hood without the paywalls!
+  I wanted the flavour of popcorntime and the workings of plex under the hood.
   Feel free to folk it and make it better, it works but I have had some issues with some media not playing.
