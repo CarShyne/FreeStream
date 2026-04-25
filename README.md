@@ -1,3 +1,4 @@
+   (Edit Player.html, Index.html to reflect your IP and media storage paths.)
 	1.	Pull repo
 	2.	cd server && npm install && node index.js
 	3.	Open localhost:3000
